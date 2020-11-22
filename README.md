@@ -1,2 +1,3 @@
 # latex_setting
-texlive2020(windows版)用の設定ファイル群
+
+texlive2020(windows 版)用の設定ファイル群
