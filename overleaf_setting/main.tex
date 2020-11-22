@@ -1,0 +1,28 @@
+\documentclass[dvipdfmx,autodetect-engine]{jsarticle}
+\usepackage{tikz}
+% \usepackage{tikzpreview} % tikzpictureを切り出すスタイルファイル
+% これを使うのにprdvipdfmx.defが必要
+
+\title{サンプル文書}
+\author{著者}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+日本語を用いた文書を作成します。    
+\end{abstract}
+
+\section{はじめに}
+
+TikZ図版もテストします。
+
+\begin{center}
+\begin{tikzpicture}
+\node[draw,fill=red!20!white,circle] (S) at (0,0) {はじめ};
+\node[draw,fill=blue!20!white,circle] (G) at (2,2) {おわり};
+\draw[very thick,->] (S) -- (G);
+\end{tikzpicture}
+\end{center}
+
+\end{document}

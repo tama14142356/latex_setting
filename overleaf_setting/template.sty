@@ -1,0 +1,635 @@
+\ProvidesPackage{template}[2020/06/08 v1.4]
+
+%%===============================================================================================================
+%%change log
+%% v1.1 pdiff, diff, dintとパッケージをまとめた
+%% v1.2[2/28] 回路のためのコマンド作成（カルノー図など）
+%% v1.3[5/20] しおり作成のパッケージを追加した 
+%% v1.4[6/8] 旧字体表示のためのパッケージを追加した しおり作成に関する記述の追加・ファイルの整理
+%%===============================================================================================================
+
+\usepackage{graphicx}%                     %図挿入用のパッケージ
+\usepackage{framed}%                       %ただの囲み線を描く（文字の大きさ位置に関係なく、全体に枠線を描く）
+\usepackage{fancyhdr}%                     %ヘッダ、フッター用のパッケージ
+\usepackage{fancybox}%                     %verbatim環境を枠線で囲むための下準備
+\usepackage{environ}%                      %NewEnvironを使うためのもの
+\usepackage{varwidth}%                     %枠線調整
+\usepackage{url}%                          %URL参考文献載せる用
+\usepackage{multirow}%                     %表の縦結合のため
+\usepackage{multicol}%                     %図と文章を並列化させるための工夫のために使ったもの
+\usepackage{wrapfig}%                      %図と文章を並列化させるためのもの
+\usepackage{here}%                         %強制的にコードの位置に図を挿入のため
+\usepackage{ascmac}%                       %数式環境強化
+\usepackage{amsmath, amssymb}%             %underset therfore
+\usepackage{enumerate}%                    %任意の番号を付けるためのもの\begin{enumerate}[(a)]みたいな感じで(a), (b)となる
+\usepackage{textcomp}%                     %textlessなど
+\usepackage[T1]{fontenc}%
+\usepackage{color}%                        %色のオプション
+\usepackage{bm}%                           
+\usepackage{threeparttable}%               %注釈用
+\usepackage{spalign}%                      %特別な式を書く用
+
+\usepackage{listings, jlisting}%           %ソースコード表示のため(jlistingは日本語用listingsだけでは日本語表記がおかしくなるため)
+\usepackage{titlesec}%                     %タイトル文字調整用
+
+\usepackage{tikz}%                         %tikzpicture環境のため
+\usetikzlibrary{intersections, calc}%      %tikzpictureでの計算用
+\usetikzlibrary{angles, quotes}%           %tikzpictureでの計算用
+\usetikzlibrary{matrix}%                   %tikzpictureで行列表示するため
+\usetikzlibrary{decorations.pathmorphing, decorations.shapes, decorations.pathreplacing}% %tikzpictureでのデコレーション用：線の形を変えたりとか
+\usetikzlibrary{circuits.logic.US}%        %論理回路・電気回路用
+\usetikzlibrary{shapes.geometric}
+% \usepackage[american]{circuitikz}%         %論理回路・電気回路用
+\usepackage{hyperref}%                     %目次のしおり作成用
+\usepackage{pxjahyper}%                    %しおりの日本語用
+
+\usepackage{otf}%                          %旧字体表示のため(髙とか)
+
+%%%====================================================================================================================================
+%%%しおり作成用オプション(デフォルト)
+%%%参照リンクの色の指定も行っています。
+%%%色を変えたい場合は下記と同様のものを現在編集しているファイルのプリアンブル部分に記載し、色の指定を変えれば変わります。
+\hypersetup{% hyperrefオプションリスト
+	setpagesize=false,%ページサイズを正しい値にする（正確にはページサイズをhyperrefに指定させない）
+	% bookmarks=true,%ブックマークを作成する
+	bookmarksdepth=subsection,%しおりのレベル
+	bookmarksnumbered=true,%しおりのレベルをブックマークに記載するか
+	bookmarksopen=true,%ブックマークを開く
+	colorlinks=true,%カラーリンクを使用する
+	linkcolor=blue,%内部参照リンク用のカラー
+	citecolor=red,%文献参照リンク用のカラー
+}
+%%%====================================================================================================================================
+
+\newcommand{\imag}{\mathrm{i}}%虚数単位表記
+\newcommand{\mathbold}[1]{\mbox{\boldmath $#1$}}%数式空間内の太字
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}%中の文字の大きさに合わせた縦線
+%%%====================================================================================================================================
+%%ソースコードのフレーム設定＆コマンド定義
+\definecolor{myComment}{rgb}{0.0, 0.6, 0.0}%       % コメントスタイル用の色設定
+\definecolor{myKeyWord}{cmyk}{1.0, 0.0, 0.0, 0.3}% % キーワードスタイル用の色設定
+\definecolor{myString}{cmyk}{0.0, 1.0, 0.0, 0.0}%  % 文字列スタイル用の色設定
+ 
+% テキスト用（デフォルト）
+\lstdefinestyle{customText}{%
+	backgroundcolor  = {\color{white}},%               % 背景色
+	basicstyle       = {\ttfamily\small},%             % コードの基本書式
+	breaklines       = {true},%                        % 途中で改行するかどうか
+	commentstyle     = {\itshape  \color{myComment}},% % コメントのスタイル
+	frame            = {shadowbox},%                   % フレームの書式 "t"は上に線を記載, "T"は上に二重線を記載 他オプション：leftline，topline，bottomline，lines，single，shadowbox
+	framesep         = {4pt},%                         % ステップ幅 frameまでの間隔(行番号とプログラムの間)
+	classoffset = 0,%								   % 関数名等の色の設定
+	keywordstyle     = {\bfseries \color{myKeyWord}},% % キーワード(int, ifなど)のスタイル
+	lineskip         = {-0.5ex},%                      % 行送り
+	showstringspaces = {false},%                       % 文字列中における半角スペースの表示の有無
+	sensitive        = {true},%                        % 大文字小文字の区別を付けるかどうか
+	numbers          = {left},%                        % 行番号の位置
+	numberstyle      = {\small},%               	   % 行番号のスタイル
+	numbersep        = {1zw},%                         % コードから行番号までの距離
+	stepnumber       = {1},%                           % 行番号のステップ幅
+	stringstyle      = {\ttfamily \color{myString}},%  % 文字書式のスタイル ""で囲まれたなどの"文字"の書体
+	tabsize          = {4},%                           % タブ幅
+	xleftmargin      = {2zw},%                         % 左側の余白
+	xrightmargin     = {2zw},%                         % 右側の余白
+	captionpos		 = b%							   % キャプションの場所("tb"ならば上下両方に記載)
+}%
+
+%　プレーンテキスト（行番号無し）
+\lstdefinestyle{customPlain}{%
+	backgroundcolor  = {\color{white}},%               
+	basicstyle       = {\ttfamily\small},%             
+	breaklines       = {true},%                        
+	commentstyle     = {\itshape  \color{myComment}},% 
+	frame            = {single},%                      % シンプルな四角い枠
+	framesep         = {4pt},%                         
+	lineskip         = {-0.5ex},%                      
+	showstringspaces = {false},%                       
+	sensitive        = {true},%                        
+	tabsize          = {4},%                           
+	xleftmargin      = {2zw},%                         
+	xrightmargin     = {2zw},%                         
+	captionpos		 = b%							   
+}%
+% C 言語用
+\lstdefinestyle{customC}{%
+	language         = {C},%
+	style            = {customText},%
+	morecomment      = [l]{//},%                       % 行コメント
+	morecomment      = [s]{/*}{*/},%                   % 複数行コメント
+	morecomment      = [n]{/*}{*/},%                   % ネスト可能な複数行コメント
+	morestring       = [b]{"}%                         %文字列に含めるときのエスケープ法"b"はバックスラッシュ"d"は二つ続けるとエスケープ
+}%
+% Bash 用
+\lstdefinestyle{customBash}{%
+	language         = {bash},%
+	style            = {customText},%
+	morestring       = [b]{`}%
+}%
+% Fortran 用
+\lstdefinestyle{customFortran}{%
+	language         = {[77]Fortran},%
+	style            = {customText}%
+}%
+% Python用
+\lstdefinestyle{customPython}{%
+	language		 = {Python},%
+	style 			 = {customText}%
+}%
+% 任意の言語
+\lstdefinestyle{customAll}{%
+	style            = {customText}%
+}%
+
+%ソースコードから図に名前を変更
+\renewcommand{\lstlistingname}{図}%
+
+\lstset{escapechar = , style = {customPlain}}%
+\newcommand{\includeCode}[3][C]{%
+	\lstinputlisting[caption = {#3}, label = {src:#3}, escapechar = , style = custom#1]%
+	{#2}%
+}%
+%%%====================================================================================================================================
+
+%行列で行列外に文字を表示させるために必要なもの
+\renewcommand{\spalignendline}{\cr}%
+
+%%%====================================================================================================================================
+%%拡張した使い方
+%下線だけ色付け
+\newcommand{\underlinecolor}[2][black]{{\color{#1}{\underline{{\normalcolor #2}}}}}
+%上線だけ色付け
+\newcommand{\overlinecolor}[2][black]{{\color{#1}{\overline{{\normalcolor #2}}}}}
+%右斜め下線のアスタリスク付き矢印
+\newcommand{\searrowclosure}{\searrow^{\mbox{\hspace{-4pt}}\ast}}
+%右斜め上線のアスタリスク付き矢印
+\newcommand{\nearrowclosure}{{}^{*}\mbox{\hspace{-7pt}}\nearrow}
+%左斜め下線のアスタリスク付き矢印
+\newcommand{\swarrowclosure}{{}^{*}\mbox{\hspace{-7pt}}\swarrow}
+%左斜め上線のアスタリスク付き矢印
+\newcommand{\nwarrowclosure}{\nwarrow^{\mbox{\hspace{-4pt}}\ast}}
+%%%====================================================================================================================================
+
+%%%====================================================================================================================================
+%%数式用
+%偏微分方程式のためのコマンド\pdiff[<階数>]{<微分される関数>}{<微分する対象>}
+\newcommand{\pdiff}[3][1]{%
+	\ifnum #1<1%
+		\text{エラー} (最初の引数は1以上の整数)%
+	\else{%
+		\ifnum% 
+			#1=1 \frac{\mathrm{\partial} #2}{\mathrm{\partial} #3}%
+		\else%
+			\frac{\mathrm{\partial}^{#1} #2}{\mathrm{\partial} #3^{#1}}%
+			\fi%
+	}\fi%
+}%
+%微分方程式のためのコマンド\diff[<階数>]{<微分される関数>}{<微分する対象>}
+\newcommand{\diff}[3][1]{%
+	\ifnum #1<1%
+		\text{エラー} (最初の引数は1以上の整数)%
+	\else{%
+		\ifnum% 
+			#1=1 \frac{\mathrm{d} #2}{\mathrm{d} #3}%
+		\else%
+			\frac{\mathrm{d}^{#1} #2}{\mathrm{d} #3^{#1}}%
+			\fi%
+	}\fi%
+}%
+
+%積分のためのコマンド\dint[<積分変数>]{<積分区間下限>}{<積分区間上限>}{<積分される関数>}
+\newcommand{\dint}[4][x]{%
+	\int_{#2}^{#3} #4 \,{\mathrm{d} #1}%
+}%
+%%%====================================================================================================================================
+
+%%%====================================================================================================================================
+%tikzpictureで使えるコマンド";"は使うときはつけない
+%正方形を描く\myrectangle{<対角線の交点の座標>}{<1辺の長さの半分>}
+\newcommand{\myrectangle}[2]{\draw ($#1 + (-#2, -#2)$) rectangle ($#1 + (#2, #2)$);}
+%正三角形を描く\mytriangle{<外心の座標>}{<外接円の半径>}
+\newcommand{\mytriangle}[2]{\draw ($#1 + (-#2*1.73 / 2, -#2 / 2)$) --++(0:1.73*#2) --++(120:1.73*#2) --cycle;}
+%正規分布のグラフを書くコマンド
+\newcommand{\norm}[5]{%
+	\ifnum #5<0%
+		\text{縮尺は0以上で指定してください}%
+	\else{%
+		\ifnum #5=0% 
+			%#1平均 #2分散 #3縮尺 #4範囲指定することを想定しているが、色でもよし 
+			\draw [#4, samples = 100] plot(\x, {(#3 + #5)*exp(-pow(\x - #1, 2)/2/#2)/sqrt(2*pi*#2)});%
+		\else%
+			%#1平均　#2分散 #3範囲 #4色(色基本だが、オプション機能用) #5縦軸の縮尺 
+			\draw [#4, samples = 100, domain = #1 - #3:#1 + #3] plot(\x, {#5*exp(-pow(\x - #1, 2)/2/#2)/sqrt(2*pi*#2)});%
+			\fi%
+ 	}\fi%
+}%
+%%%====================================================================================================================================
+
+%%%------------------------------------------------------------------------------------------------------------------
+%%特殊な記号
+%レガシー文字囲み用コマンド
+% \newcommand{\maru}[2]{%
+% 	\hbox{%
+% 		\ooalign{%
+% 			\hbox{\small #1}%
+% 			\crcr%
+% 			% \hspace{-3pt}%
+% 			\hbox{%
+% 				\color{#2}{%
+% 					\hbox{%
+% 						{\large $\bigcirc$}%
+% 					}%
+% 				}%
+% 			}%
+% 		}%
+% 	}%
+% }
+
+%文字囲み用コマンド\maru{<点の名前>(defaultはO)}{<中の文字>}{<囲み線の色>}
+\newcommand{\maru}[3][O]{%
+	\tikz [remember picture, baseline = (#1.base)]%
+	\node [inner sep=0.6, circle, draw, #3] (#1) {\normalcolor \small #2};%
+}%
+
+%四角に文字囲みコマンド\sikaku{<点の名前>(defaultはO)}{<中の文字>}{<囲み線の色>}
+\newcommand{\sikaku}[3][O]{%
+	\tikz [remember picture, baseline = (#1.base)]%
+	\node [inner sep=1.5, rectangle, draw, #3] (#1) {\normalcolor \small #2};%
+}%
+\newcommand{\mysikaku}[1][black]{%
+	\tikz \node [inner sep=1.5, rectangle, draw, fill=#1, #1] (O) at (0, 0) {};%
+}%
+%%%====================================================================================================================================
+
+
+%%%====================================================================================================================================
+%%箇条書きの行間を詰めるためのもの
+\newenvironment{itemize2}%
+{%
+    \begin{list}{$\bullet$\ \ }% 見出し記号／直後の空白を調節
+    {%
+		\setlength{\itemindent}{0pt}%
+        \setlength{\leftmargin}{3zw}%  左のインデント
+        \setlength{\rightmargin}{0zw}% 右のインデント
+        \setlength{\labelsep}{0zw}%    黒丸と説明文の間
+        \setlength{\labelwidth}{3zw}%  ラベルの幅
+        \setlength{\itemsep}{0em}%     項目ごとの改行幅
+        \setlength{\parsep}{0em}%      段落での改行幅
+        \setlength{\listparindent}{0zw}% 段落での一字下り
+	}%
+}%
+{%
+	\end{list}%
+}%
+
+\newcounter{enum2}%
+\newenvironment{enumerate2}%
+{%
+	\begin{list}%
+	{%
+		\arabic{enum2}.\ \,%  見出し記号／直後の空白を調節
+	}%
+	{%
+     \usecounter{enum2}%
+     \setlength{\itemindent}{0zw}%  ここは 0 に固定
+     \setlength{\leftmargin}{3zw}%  左のインデント
+     \setlength{\rightmargin}{0zw}% 右のインデント
+     \setlength{\labelsep}{0zw}%    黒丸と説明文の間
+     \setlength{\labelwidth}{3zw}%  ラベルの幅
+     \setlength{\itemsep}{0em}%     項目ごとの改行幅
+     \setlength{\parsep}{0em}%      段落での改行幅
+     \setlength{\listparindent}{0zw}% 段落での一字下り
+  }%
+}%
+{%
+	\end{list}%
+}%
+%%%====================================================================================================================================
+
+%%%====================================================================================================================================
+%%論理回路接続点
+\tikzstyle{branch}=[fill,shape=circle,minimum size=3pt,inner sep=0pt]
+%%ユーザー定義回路
+\tikzstyle{p3 port}=[draw, shape=rectangle,minimum size=30pt,inner sep=3pt]
+%%%====================================================================================================================================
+%%%====================================================================================================================================
+%%カルノー図用環境
+% ref: http://tex.stackexchange.com/questions/36798/remove-vertical-lines-for-table/36879#36879
+
+%internal group
+%#1-space between node and grouping line. Default=0
+%#2-top left node
+%#3-bottom right node
+%#4-color of line(added by me)
+\newcommand{\implicant}[4][0]{%
+	\draw[rounded corners=3pt, #4] ($(#2.north west)+(135:#1)$) rectangle ($(#3.south east)+(-45:#1)$);%
+}%
+
+%group lateral borders
+%#1-space between node and grouping line. Default=0
+%#2-top left node
+%#3-bottom right node
+%#4-color of line(added by me)
+\newcommand{\implicantcostats}[4][0]{%
+	\draw[rounded corners=3pt, #4] ($(rf.east |- #2.north)+(90:#1)$)-| ($(#2.east)+(0:#1)$) |- ($(rf.east |- #3.south)+(-90:#1)$);%
+	\draw[rounded corners=3pt, #4] ($(cf.west |- #2.north)+(90:#1)$) -| ($(#3.west)+(180:#1)$) |- ($(cf.west |- #3.south)+(-90:#1)$);%
+}%
+
+%group top-bottom borders
+%#1-space between node and grouping line. Default=0
+%#2-top left node
+%#3-bottom right node
+%#4-color of line(added by me)
+\newcommand{\implicantdaltbaix}[4][0]{%
+	\draw[rounded corners=3pt, #4] ($(cf.south -| #2.west)+(180:#1)$) |- ($(#2.south)+(-90:#1)$) -| ($(cf.south -| #3.east)+(0:#1)$);%
+	\draw[rounded corners=3pt, #4] ($(rf.north -| #2.west)+(180:#1)$) |- ($(#3.north)+(90:#1)$) -| ($(rf.north -| #3.east)+(0:#1)$);%
+}%
+
+%group corners
+%in row×colmun karnaugh map(left is lower bit)
+%but 5 > row > 1 && 5 > column > 1
+%#1-space between node and grouping line. Default=0
+%#2-# of karnaugh map row(added by me)
+%#3-# of karnaugh map column(added by me)
+%#4-color of line(added by me)
+%%group corners用のレジスタ
+\newcount\rxu
+\newcount\lxd
+\newcount\rxd
+\newcommand{\implicantcantonsreverse}[4][0]{%
+\ifnum #2 > 1{%
+		\ifnum #2 < 5{%
+			\ifnum #3 > 1{%
+				\ifnum #3 < 5{%
+					\rxu = #3%
+					\divide\rxu2%
+					\lxd = #2%
+					\multiply\lxd\rxu%
+					\rxd = \lxd%
+					\advance\rxd\rxu%
+					\draw[rounded corners=3pt, #2] ($(rf.east |- 0.south)+(-90:#1)$) -| ($(0.east |- cf.south)+(0:#1)$);%
+					\draw[rounded corners=3pt, #2] ($(rf.east |- \the\rxu.north)+(-90:#1)$) -| ($(\the\rxu.east |- rf.north)+(180:#1)$);%
+					\draw[rounded corners=3pt, #2] ($(cf.west |- \the\lxd.south)+(90:#1)$) -| ($(\the\lxd.west |- cf.south)+(0:#1)$);%
+					\draw[rounded corners=3pt, #2] ($(cf.west |- \the\rxd.north)+(90:#1)$) -| ($(\the\rxd.west |- rf.north)+(180:#1)$);%
+				}\fi%
+			}\fi%
+		}\fi%
+	}\fi%	
+}%
+
+%group corners
+%in row×colmun karnaugh map(left is upper bit)
+%but 5 > row > 1 && 5 > column > 1
+%#1-space between node and grouping line. Default=0
+%#2-# of karnaugh map row(added by me)
+%#3-# of karnaugh map column(added by me)
+%#4-color of line(added by me)
+\newcommand{\implicantcantons}[4][0]{%
+	\ifnum #2 > 1{%
+		\ifnum #2 < 5{%
+			\ifnum #3 > 1{%
+				\ifnum #3 < 5{%
+					\rxu = #3%
+					\divide\rxu2%
+					\lxd = #2%
+					\multiply\lxd\rxu%
+					\rxd = \lxd%
+					\advance\rxd\rxu%
+					\draw[rounded corners=3pt, #4] ($(rf.east |- 0.south)+(-90:#1)$) -| ($(0.east |- cf.south)+(0:#1)$);%
+					\draw[rounded corners=3pt, #4] ($(cf.west |- \the\rxu.south)+(-90:#1)$) -| ($(\the\rxu.west |- cf.south)+(180:#1)$);%
+					\draw[rounded corners=3pt, #4] ($(rf.east |- \the\lxd.north)+(90:#1)$) -| ($(\the\lxd.east |- rf.north)+(0:#1)$);%
+					\draw[rounded corners=3pt, #4] ($(cf.west |- \the\rxd.north)+(90:#1)$) -| ($(\the\rxd.west |- rf.north)+(180:#1)$);%
+				}\fi%
+			}\fi%
+		}\fi%
+	}\fi%
+}%
+
+%%%Empty Karnaugh map 4x4
+%%左が下位2ビット
+\newenvironment{Karnaugh2}[2]%
+{%
+    \begin{tikzpicture}[baseline=(current bounding box.north),scale=0.8]%
+        \draw (0,0) grid (4,4);%
+        \draw (0,4) -- node [pos=0.8,above right,anchor=south west] {#1} node [pos=0.7,below left,anchor=north east] {#2} ++(135:1);%
+        %
+        \matrix (mapa) [matrix of nodes, column sep={0.8cm,between origins}, row sep={0.8cm,between origins},%
+            every node/.style={minimum size=0.3mm}, anchor=8.center, ampersand replacement=\&] at (3.5,3.5)%
+        {%
+                                   \& |(c00)| 00         \& |(c01)| 01         \& |(c11)| 11         \& |(c10)| 10         \& |(cf)| \phantom{00} \\
+            |(r00)| 00             \& |(0)|  \phantom{0} \& |(4)|  \phantom{0} \& |(12)| \phantom{0} \& |(8)|  \phantom{0} \&                     \\
+            |(r01)| 01             \& |(1)|  \phantom{0} \& |(5)|  \phantom{0} \& |(13)| \phantom{0} \& |(9)|  \phantom{0} \&                     \\
+            |(r11)| 11             \& |(3)|  \phantom{0} \& |(7)|  \phantom{0} \& |(15)| \phantom{0} \& |(11)| \phantom{0} \&                     \\
+            |(r10)| 10             \& |(2)|  \phantom{0} \& |(6)|  \phantom{0} \& |(14)| \phantom{0} \& |(10)| \phantom{0} \&                     \\
+            |(rf) | \phantom{00}   \&                    \&                    \&                    \&                    \&                     \\
+        };%
+}%
+{%
+    \end{tikzpicture}%
+}%
+
+%%%Empty Karnaugh map 4x4
+%%左が上位2ビット
+\newenvironment{Karnaugh}[2]%
+{%
+    \begin{tikzpicture}[baseline=(current bounding box.north),scale=0.8]%
+        \draw (0,0) grid (4,4);%
+        \draw (0,4) -- node [pos=0.8,above right,anchor=south west] {#2} node [pos=0.7,below left,anchor=north east] {#1} ++(135:1);%
+        %
+        \matrix (mapa) [matrix of nodes, column sep={0.8cm,between origins}, row sep={0.8cm,between origins},%
+            every node/.style={minimum size=0.3mm}, anchor=8.center, ampersand replacement=\&] at (0.5,0.5)%
+        {%
+                                   \& |(c00)| 00           \& |(c01)| 01          \& |(c11)| 11         \& |(c10)| 10         \& |(cf)| \phantom{00} \\
+            |(r00)| 00             \& |(0)|   \phantom{0}  \& |(1)|   \phantom{0} \& |(3)|  \phantom{0} \& |(2)|  \phantom{0} \&                     \\
+            |(r01)| 01             \& |(4)|   \phantom{0}  \& |(5)|   \phantom{0} \& |(7)|  \phantom{0} \& |(6)|  \phantom{0} \&                     \\
+            |(r11)| 11             \& |(12)|  \phantom{0}  \& |(13)|  \phantom{0} \& |(15)| \phantom{0} \& |(14)| \phantom{0} \&                     \\
+            |(r10)| 10             \& |(8)|   \phantom{0}  \& |(9)|   \phantom{0} \& |(11)| \phantom{0} \& |(10)| \phantom{0} \&                     \\
+            |(rf) | \phantom{00}   \&                      \&                     \&                    \&                    \&                     \\
+		};%
+}%
+{%
+    \end{tikzpicture}%
+}%
+
+%%%Empty Karnaugh map 2x4
+\newenvironment{Karnaughvuit}[2]%
+{%
+    \begin{tikzpicture}[baseline=(current bounding box.north),scale=0.8]%
+        \draw (0,0) grid (4,2);%
+        \draw (0,2) -- node [pos=0.7,above right,anchor=south west] {#1} node [pos=0.7,below left,anchor=north east] {#2} ++(135:1);%
+        %
+        \matrix (mapa) [matrix of nodes, %
+                column sep={0.8cm,between origins}, %
+                row sep={0.8cm,between origins}, %
+                every node/.style={minimum size=0.3mm}, %
+                anchor=4.center, %
+                ampersand replacement=\&] at (3.5,1.5)%
+        {%
+                                  \& |(c00)| 00         \& |(c01)| 01         \& |(c11)| 11         \& |(c10)| 10         \& |(cf)| \phantom{00} \\
+            |(r00)| 0             \& |(0)|  \phantom{0} \& |(2)|  \phantom{0} \& |(6)|  \phantom{0} \& |(4)|  \phantom{0} \&                     \\
+            |(r01)| 1             \& |(1)|  \phantom{0} \& |(3)|  \phantom{0} \& |(7)|  \phantom{0} \& |(5)|  \phantom{0} \&                     \\
+            |(rf) | \phantom{00}  \&                    \&                    \&                    \&                    \&                     \\
+    	};%
+}%
+{%
+    \end{tikzpicture}%
+}%
+
+%%%Empty Karnaugh map 4x2
+\newenvironment{Karnaughvuitl}[2]%
+{%
+    \begin{tikzpicture}[baseline=(current bounding box.north),scale=0.8]%
+        \draw (0,0) grid (2,4);%
+        \draw (0,4) -- node [pos=0.7,above right,anchor=south west] {#2} node [pos=0.7,below left,anchor=north east] {#1} ++(135:1);%
+        %
+        \matrix (mapa) [matrix of nodes, %
+                column sep={0.8cm,between origins}, %
+                row sep={0.8cm,between origins}, %
+                every node/.style={minimum size=0.3mm}, %
+                anchor=4.center, %
+                ampersand replacement=\&] at (0.5,0.5)%
+        {%
+                                   \& |(c00)| 0          \& |(c01)| 1          \& |(cf)| \phantom{00} \\
+            |(r00)| 00             \& |(0)|  \phantom{0} \& |(1)|  \phantom{0} \&                     \\
+            |(r01)| 01             \& |(2)|  \phantom{0} \& |(3)|  \phantom{0} \&                     \\
+            |(r11)| 11             \& |(6)|  \phantom{0} \& |(7)|  \phantom{0} \&                     \\
+            |(r10)| 10             \& |(4)|  \phantom{0} \& |(5)|  \phantom{0} \&                     \\
+            |(rf) | \phantom{00}   \&                    \&                    \&                     \\
+		};%
+}%
+{%
+    \end{tikzpicture}%
+}%
+
+%%%Empty Karnaugh map 2x2
+\newenvironment{Karnaughdouble}[2]%
+{%
+    \begin{tikzpicture}[baseline=(current bounding box.north),scale=0.8]%
+        \draw (0,0) grid (2,2);%
+        \draw (0,2) -- node [pos=0.7,above right,anchor=south west] {#2} node [pos=0.7,below left,anchor=north east] {#1} ++(135:1);%
+        %
+        \matrix (mapa) [matrix of nodes, %
+                column sep={0.8cm,between origins}, %
+                row sep={0.8cm,between origins}, %
+                every node/.style={minimum size=0.3mm}, %
+                anchor=4.center, %
+                ampersand replacement=\&] at (-0.35,-0.15)%
+        {%
+                                   \& |(c00)| 0          \& |(c01)| 1          \& |(cf)| \phantom{00} \\
+            |(r00)| 0              \& |(0)|  \phantom{0} \& |(1)|  \phantom{0} \&                     \\
+            |(r01)| 1              \& |(2)|  \phantom{0} \& |(3)|  \phantom{0} \&                     \\
+            |(rf) | \phantom{00}   \&                    \&                    \&                     \\
+        };%
+}%
+{%
+    \end{tikzpicture}%
+}%
+
+%Defines  16 values (0,1,X)
+\newcommand{\contingut}[1]{%
+    \foreach \x [count=\xi from 0] in {#1}%
+        \path (\xi) node {\x};%
+}%
+%%%====================================================================================================================================
+%%%====================================================================================================================================
+%%回路素子の定義のためのレジスタ
+\newcount\@p
+\newcount\@t
+\newcount\@u
+%%anchorのユーザ定義
+%% #1 anchorの名前 
+%% #2 inputなら \southwest outputなら\northeast
+%% #3 半分より下の分割数
+%% #4 分割したものの何番目か
+\newcommand{\myanchor}[4]{%
+	\anchor{#1}{%
+		#2
+		\pgf@xa = \pgf@x
+		\pgf@ya = \pgf@y
+		\divide\pgf@ya#3
+		\multiply\pgf@ya#4
+		\pgfpointorigin
+		\advance\pgf@x\pgf@xa
+		\advance\pgf@y\pgf@ya
+	}
+}
+%% \myanchorの逆側
+%% #1 anchorの名前 
+%% #2 inputなら \southwest outputなら\northeast
+%% #3 半分より下の分割数
+%% #4 分割したものの何番目か
+\newcommand{\myanchorrev}[4]{%
+	\anchor{#1}{%
+		#2
+		\pgf@xa = \pgf@x
+		\pgf@ya = -\pgf@y
+		\divide\pgf@ya#3
+		\multiply\pgf@ya#4
+		\pgfpointorigin
+		\advance\pgf@x\pgf@xa
+		\advance\pgf@y\pgf@ya
+	}
+}
+
+%%ユーザ定義回路素子のための補助コマンド
+%%anchorのセットを定義
+%%（四角の回路素子の入力端子または出力端子専用）
+%% #1 input またはoutput #2 端子の総数 
+%% #3 inputなら\southwest outputなら\northeast
+%% inputは下から順番に1, 2, 3, .., 5まで番号が付けられる
+%% outputは上から順番に1, 2, 3, .., 5まで番号が付けられる
+\newcommand{\anchorpartset}[3][input]{
+	\global\@t = #2
+	\global\@u = #2
+	\divide\@t by 2
+	\global\@t\@t
+	\ifodd#2{%
+		\ifnum#2>1{%
+			\advance\@u by -1
+			\global\@u\@u
+		}\fi%
+	}\fi
+	\global\@u\@u
+	\myanchor{#1 1}{#3}{\@u}{\@t}
+	\ifnum\@t < 2{%
+		\ifodd#2{%
+			\myanchor{#1 2}{#3}{\@u}{0}
+			\myanchorrev{#1 3}{#3}{\@u}{\@t}
+		}\else{%
+			\myanchorrev{#1 2}{#3}{\@u}{\@t}
+		}\fi%
+	}\else{%
+		\ifodd#2{%
+			\myanchor{#1 2}{#3}{\@u}{1}
+			\myanchor{#1 3}{#3}{\@u}{0}
+			\myanchorrev{#1 4}{#3}{\@u}{1}
+			\myanchorrev{#1 5}{#3}{\@u}{\@t}
+		}\else{%
+			\myanchor{#1 2}{#3}{\@u}{1}
+			\myanchorrev{#1 3}{#3}{\@u}{1}
+			\myanchorrev{#1 4}{#3}{\@u}{\@t}
+		}\fi%
+	}\fi%
+}
+
+%%四角の回路素子ユーザー定義
+%%input, outputの数を5まで指定可能
+%%#1 outputの数 #2 inputの数 #3　素子名
+\newcommand{\defineshape}[3][1]{%
+	\pgfdeclareshape{#3}%
+	{%
+		\inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+		\inheritanchorborder[from=rectangle]
+		\inheritanchor[from=rectangle]{center}
+		\inheritanchor[from=rectangle]{north}
+		\inheritanchor[from=rectangle]{south}
+		\inheritanchor[from=rectangle]{west}
+		\inheritanchor[from=rectangle]{east}
+		\backgroundpath{% this is new
+			% construct rectangle path
+			\pgfpathrectanglecorners{\southwest}{\northeast}
+		}%
+		\anchorpartset[input]{#2}{\southwest}
+		\anchorpartset[output]{#1}{\northeast}
+	}%
+}%
+%%%====================================================================================================================================

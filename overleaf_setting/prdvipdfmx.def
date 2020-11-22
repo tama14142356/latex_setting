@@ -1,0 +1,93 @@
+%
+% prdvipdfmx.def
+%
+%% Avoids duplicate loading.
+\csname bxpw@prdvipdfmx@loaded\endcsname
+\def\bxpw@prdvipdfmx@loaded{\endinput}
+%% If the engine is XeTeX or pdfTeX/LuaTeX then quits.
+\@tempswatrue
+\ifx\XeTeXversion\@undefined\else \@tempswafalse \fi
+\ifx\pdfoutput\@undefined\else
+  \ifnum\pdfoutput>\z@  \@tempswafalse \fi
+\fi
+\if@tempswa\else \expandafter\endinput\fi\relax
+%% If prtightpage.def is already loaded, it's too late.
+\ifx\pr@bbadjust\@undefined\else
+  \PackageError{preview}%
+   {'dvipdfmx' must be specified earlier}\@ehc
+\expandafter\endinput\fi\relax
+%% Sets \pr@graphicstype.
+\let\pr@graphicstype\m@ne
+%% Interrupts the process of 'tightpage' option.
+\let\bxpw@default@ds\default@ds
+\def\default@ds{%
+  \ifnum\pr@graphicstype=\m@ne
+    \def\bxpw@tightpage{tightpage}%
+  \fi
+  \ifx\CurrentOption\bxpw@tightpage
+    \bxpw@dispatch
+  \else \bxpw@default@ds
+  \fi}
+%% \bxpw@dispatch
+% Dispatched when 'tightpage' option is found.
+\def\bxpw@dispatch{%
+%
+  \typeout{Preview: (dvipdfmx)}%
+%% Same as in prtightpage.def
+\ifx\PreviewBorder\@undefined
+  \newdimen\PreviewBorder
+  \PreviewBorder=0.50001bp
+\fi
+\ifx\PreviewBbAdjust\@undefined
+  \def\PreviewBbAdjust{-\PreviewBorder -\PreviewBorder
+    \PreviewBorder \PreviewBorder}
+\fi
+%% if active
+\ifPreview\bxpw@dispatch@active \fi
+%
+}
+\def\bxpw@dispatch@active{%
+%
+%% Same as in prtightpage.def
+\def\pr@nextbb{\edef\next{\next\space\number\dimen@}%
+  \expandafter\xdef\csname pr@bb@%
+    \romannumeral\count@\endcsname{\the\dimen@}%
+  \advance\count@\@ne\ifnum\count@<5
+  \afterassignment\pr@nextbb\dimen@=\fi}%
+\global\let\pr@bbadjust\@empty
+\pr@addto@front\pr@ship@end{\begingroup
+  \let\next\@gobble
+  \count@\@ne\afterassignment\pr@nextbb
+  \dimen@\PreviewBbAdjust
+  \ifx\pr@bbadjust\next
+  \else \global\let\pr@bbadjust\next
+  \typeout{Preview: Tightpage \pr@bbadjust}%
+  \fi\endgroup}%
+%% post-shipout process for dvipdfmx
+  \g@addto@macro\pr@ship@end{\dimen@\ht\pr@box
+    \ifdim\dimen@<\z@ \dimen@\z@\fi
+    \advance\dimen@\pr@bb@iv
+    \dimen@ii=\dimen@
+    \voffset=-1in
+    \advance\voffset\dimen@
+    \advance\voffset-\ht\pr@box
+    \dimen@\dp\pr@box
+    \ifdim\dimen@<\z@ \dimen@\z@\fi
+    \advance\dimen@-\pr@bb@ii
+    \advance\dimen@\dimen@ii
+    \paperheight\dimen@
+    \dimen@\wd\pr@box
+    \ifdim\dimen@<\z@ \dimen@=\z@\fi
+    \advance\dimen@-\pr@bb@i
+    \advance\dimen@\pr@bb@iii
+    \paperwidth\dimen@
+    \setbox\pr@box\hbox{%
+      \special{papersize=\the\paperwidth,\the\paperheight}%
+      \box\pr@box}%
+    \hoffset=-1in
+    \advance\hoffset-\pr@bb@i
+    \let\pr@offset@override\@empty}%
+%
+}
+%% all done
+\endinput
